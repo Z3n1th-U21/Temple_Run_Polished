@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b0820" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="description" content="Neon Ruins — a lightweight 3D endless runner. Dodge, jump and slide through an ancient neon city." />
+  <title>Neon Ruins — Endless Runner</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- 3D view -->
+    <canvas id="game" aria-label="Game view"></canvas>
+
+    <!-- Captures swipes / drags over the whole play area -->
+    <div id="touch-layer"></div>
+
+    <!-- Screen-space effects -->
+    <div id="vignette"></div>
+    <div id="flash"></div>
+
+    <!-- ===================== HUD ===================== -->
+    <header id="hud">
+      <div class="hud-score">
+        <span class="hud-label">Score</span>
+        <span id="score" class="hud-value">0</span>
+        <span class="hud-sub"><span id="distance">0</span> m</span>
+      </div>
+
+      <div class="hud-right">
+        <div class="coin-pill" id="coin-pill">
+          <span class="coin-icon" aria-hidden="true"></span>
+          <span id="coins">0</span>
+        </div>
+        <button id="btn-music" class="icon-btn" aria-label="Toggle music" title="Music (M)">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path class="ic-on" d="M9 18V5l11-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="17" cy="16" r="3" /><path class="ic-off" d="M3 3l18 18" /></svg>
+        </button>
+        <button id="btn-pause" class="icon-btn" aria-label="Pause" title="Pause (P / Esc)">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1.2" /><rect x="14" y="5" width="4" height="14" rx="1.2" /></svg>
+        </button>
+      </div>
+    </header>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <div id="countdown" aria-live="assertive"></div>
+
+    <!-- ===================== START SCREEN ===================== -->
+    <section id="screen-start" class="screen visible">
+      <div class="start-wrap">
+        <div class="badge">Endless Runner</div>
+        <h1 class="title"><span class="t1">NEON</span><span class="t2">RUINS</span></h1>
+        <p class="tagline">Outrun the ancient city. Dodge, leap, slide&nbsp;— and never stop.</p>
+
+        <div class="best-card">
+          <div class="best-item">
+            <span class="label">Best</span>
+            <span id="best-score" class="value">0</span>
+          </div>
+          <div class="divider"></div>
+          <div class="best-item">
+            <span class="label">Coins</span>
+            <span id="total-coins" class="value gold">0</span>
+          </div>
+        </div>
+
+        <button id="btn-play" class="btn btn-primary btn-xl">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l13-7.5z" /></svg>
+          <span>Play</span>
+        </button>
+
+        <div class="controls">
+          <div class="ctrl">
+            <span class="keys only-keys"><kbd>←</kbd><kbd>→</kbd></span>
+            <span class="keys only-touch"><i class="swipe">⇆</i></span>
+            <span class="ctrl-label">Switch lane</span>
+          </div>
+          <div class="ctrl">
+            <span class="keys only-keys"><kbd>↑</kbd><kbd class="wide">Space</kbd></span>
+            <span class="keys only-touch"><i class="swipe">↑</i></span>
+            <span class="ctrl-label">Jump</span>
+          </div>
+          <div class="ctrl">
+            <span class="keys only-keys"><kbd>↓</kbd></span>
+            <span class="keys only-touch"><i class="swipe">↓</i></span>
+            <span class="ctrl-label">Slide</span>
+          </div>
+          <div class="ctrl">
+            <span class="keys only-keys"><kbd>P</kbd></span>
+            <span class="keys only-touch"><i class="swipe">❚❚</i></span>
+            <span class="ctrl-label">Pause</span>
+          </div>
+        </div>
+
+        <div class="toggles">
+          <button id="toggle-sfx" class="chip" aria-pressed="true">Sound <b>On</b></button>
+          <button id="toggle-music" class="chip" aria-pressed="true">Music <b>On</b></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== PAUSE SCREEN ===================== -->
+    <section id="screen-pause" class="screen">
+      <div class="card">
+        <h2 class="card-title">Paused</h2>
+        <p class="card-sub">Take a breath, runner.</p>
+        <div class="btn-col">
+          <button id="btn-resume" class="btn btn-primary">Resume</button>
+          <button id="btn-restart" class="btn btn-ghost">Restart</button>
+          <button id="btn-home" class="btn btn-ghost">Main menu</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== GAME OVER SCREEN ===================== -->
+    <section id="screen-over" class="screen">
+      <div class="card over-card">
+        <h2 id="over-title" class="card-title">Wiped out</h2>
+        <div class="final-score-wrap">
+          <span class="label">Score</span>
+          <span id="final-score" class="final-score">0</span>
+          <span id="new-best" class="new-best">New best!</span>
+        </div>
+        <div class="stats">
+          <div class="stat"><span class="label">Distance</span><span id="stat-distance" class="value">0 m</span></div>
+          <div class="stat"><span class="label">Coins</span><span id="stat-coins" class="value gold">0</span></div>
+          <div class="stat"><span class="label">Best</span><span id="stat-best" class="value">0</span></div>
+        </div>
+        <div class="btn-col">
+          <button id="btn-again" class="btn btn-primary">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5" /></svg>
+            <span>Run again</span>
+          </button>
+          <button id="btn-menu" class="btn btn-ghost">Main menu</button>
+        </div>
+        <p class="hint only-keys">Press <kbd>Enter</kbd> to run again</p>
+      </div>
+    </section>
+
+    <!-- Shown only if WebGL / Three.js is unavailable -->
+    <section id="load-error" class="screen">
+      <div class="card">
+        <h2 class="card-title">Can't start the game</h2>
+        <p class="card-sub" id="load-error-msg">Three.js could not be loaded. Check your internet connection and reload.</p>
+        <button class="btn btn-primary" onclick="location.reload()">Reload</button>
+      </div>
+    </section>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
